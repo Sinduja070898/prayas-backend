@@ -8,9 +8,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
 const DEFAULT_ADMIN = {
   id: 'default-admin',
-  email: 'adminSindhu@gmail.com',
-  name: 'Sindhu',
-  password: 'Sindhu@123',
+  email: 'admin@prayas.com',
+  name: 'Admin',
+  password: 'admin@123',
   role: 'admin',
 };
 
@@ -37,38 +37,66 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   const { email, password, role } = req.body;
-  if (!email || !password) {
+
+  const emailStr = (email || '').trim().toLowerCase();
+  const passwordStr = (password || '').trim();
+
+  if (!emailStr || !passwordStr) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const r = (role || 'candidate').toLowerCase();
-  let user = await getUserByEmail(email);
 
-  if (r === 'admin' && !user) {
-    const e = (email || '').trim().toLowerCase();
-    if (e === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
-      user = DEFAULT_ADMIN;
+  // const defaultEmail = (DEFAULT_ADMIN.email || '').trim().toLowerCase();
+  // console.log('EMAIL BYTES:', Buffer.from(DEFAULT_ADMIN.email).toString('hex'));
+  // console.log('INPUT BYTES:', Buffer.from(emailStr).toString('hex'));
+
+  if (emailStr === defaultEmail) {
+    if (passwordStr !== DEFAULT_ADMIN.password) {
+      return res.status(401).json({ error: 'Incorrect password.' });
     }
+    // ✅ Admin matched — generate token and return immediately
+    const token = jwt.sign(
+      { userId: DEFAULT_ADMIN.id, email: DEFAULT_ADMIN.email, role: 'admin' },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    return res.json({
+      token,
+      user: {
+        _id: DEFAULT_ADMIN.id,
+        id: DEFAULT_ADMIN.id,
+        email: DEFAULT_ADMIN.email,
+        name: DEFAULT_ADMIN.name,
+        role: 'admin',
+      },
+    });
   }
 
+  // ✅ Not admin — check database for candidate
+  const user = await getUserByEmail(emailStr);
   if (!user) {
-    const msg = r === 'admin' ? 'No admin account found with this email.' : 'No account found with this email. Please register first.';
-    return res.status(401).json({ error: msg });
+    return res.status(401).json({ error: 'No account found with this email. Please register first.' });
   }
-  if (user.password !== password) {
+  if (user.password !== passwordStr) {
     return res.status(401).json({ error: 'Incorrect password.' });
   }
-  if (r === 'admin' && user.role !== 'admin') {
+  if (role === 'admin' && user.role !== 'admin') {
     return res.status(401).json({ error: 'No admin account found with this email.' });
   }
-  const userRole = user.role || 'candidate';
+
   const token = jwt.sign(
-    { userId: user.id, email: user.email, role: userRole },
+    { userId: user.id, email: user.email, role: user.role },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
   res.json({
     token,
-    user: { _id: user.id, id: user.id, email: user.email, name: user.name, role: userRole },
+    user: {
+      _id: user.id,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
   });
 });
 
