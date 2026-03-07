@@ -5,27 +5,13 @@ const { connectDB } = require('./config/db');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-const localOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'];
-const frontendUrls = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map((u) => u.trim()).filter(Boolean)
-  : [];
-const allowedOrigins = [...new Set([...localOrigins, ...frontendUrls])];
-
-function isOriginAllowed(origin) {
-  return !origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'production';
-}
-
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (isOriginAllowed(origin) && origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
+  if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 app.use(express.json());

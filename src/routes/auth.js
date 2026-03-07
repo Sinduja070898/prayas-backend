@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
 const DEFAULT_ADMIN = {
   id: 'default-admin',
-  email: 'admin@prayas.com',
+  email: 'admin@gmail.com',
   name: 'Admin',
   password: 'admin@123',
   role: 'admin',
@@ -45,9 +45,7 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email and password required' });
   }
 
-  // const defaultEmail = (DEFAULT_ADMIN.email || '').trim().toLowerCase();
-  // console.log('EMAIL BYTES:', Buffer.from(DEFAULT_ADMIN.email).toString('hex'));
-  // console.log('INPUT BYTES:', Buffer.from(emailStr).toString('hex'));
+  const defaultEmail = (DEFAULT_ADMIN.email || '').trim().toLowerCase();
 
   if (emailStr === defaultEmail) {
     if (passwordStr !== DEFAULT_ADMIN.password) {
