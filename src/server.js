@@ -12,14 +12,17 @@ const frontendUrls = process.env.FRONTEND_URL
   : [];
 const allowedOrigins = [...new Set([...localOrigins, ...frontendUrls])];
 
+function corsOrigin(origin, cb) {
+  const allow = !origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'production';
+  if (!allow) return cb(null, false);
+  cb(null, origin || true);
+}
+
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true);
-    if (allowedOrigins.includes(origin)) return cb(null, true);
-    if (process.env.NODE_ENV === 'production') return cb(null, true);
-    return cb(null, allowedOrigins[0] || true);
-  },
+  origin: corsOrigin,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 
