@@ -8,9 +8,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
 const DEFAULT_ADMIN = {
   id: 'default-admin',
-  email: 'admin@prayas.in',
-  name: 'Admin',
-  password: 'Admin@123',
+  email: 'adminSindhu@gmail.com',
+  name: 'Sindhu',
+  password: 'Sindhu@123',
   role: 'admin',
 };
 

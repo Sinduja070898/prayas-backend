@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const { connectDB } = require('./config/db');
 
 const app = express();
@@ -12,18 +11,23 @@ const frontendUrls = process.env.FRONTEND_URL
   : [];
 const allowedOrigins = [...new Set([...localOrigins, ...frontendUrls])];
 
-function corsOrigin(origin, cb) {
-  const allow = !origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'production';
-  if (!allow) return cb(null, false);
-  cb(null, origin || true);
+function isOriginAllowed(origin) {
+  return !origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'production';
 }
 
-app.use(cors({
-  origin: corsOrigin,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (isOriginAllowed(origin) && origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
